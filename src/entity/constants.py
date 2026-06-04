@@ -1,0 +1,7 @@
+"""Magic square domain constants (SSOT)."""
+
+MAGIC_CONSTANT = 34
+GRID_SIZE = 4
+MAX_CELL_VALUE = 16
+BLANK_CELL_VALUE = 0
+EXPECTED_BLANK_COUNT = 2
