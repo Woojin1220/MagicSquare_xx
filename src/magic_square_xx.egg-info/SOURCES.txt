@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+src/boundary/__init__.py
+src/control/__init__.py
+src/entity/__init__.py
+src/magic_square_xx.egg-info/PKG-INFO
+src/magic_square_xx.egg-info/SOURCES.txt
+src/magic_square_xx.egg-info/dependency_links.txt
+src/magic_square_xx.egg-info/requires.txt
+src/magic_square_xx.egg-info/top_level.txt

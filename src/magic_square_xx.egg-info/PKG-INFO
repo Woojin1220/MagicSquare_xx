@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: magic-square-xx
+Version: 0.1.0
+Summary: 4×4 partial magic square — ECB + Dual-Track TDD harness
+Requires-Python: >=3.10
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
