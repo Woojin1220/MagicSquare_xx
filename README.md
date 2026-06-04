@@ -104,19 +104,74 @@
 | Skill | `magic-square-tdd` |
 | Test Loop | pytest RED → FAIL |
 
-## C2C · RED 순서 ([PRD §8](docs/PRD.md#8-c2c-추적-예시))
+## RED 단계 진행 목록
 
-**권장:** `D-VAL-04` (`/`) → `D-VAL-05` (10선 전체)
+> 상세 체크리스트·설계표: **[docs/RED-TODO.md](docs/RED-TODO.md)**  
+> 규칙: **RED 1턴 = 테스트 ID 1묶음** · 변경은 `tests/`만 · `skip`/`xfail` 금지 · Logic Track Domain Mock 금지
 
-| Test ID | PRD | 요약 | 상태 |
-|---------|-----|------|------|
-| D-VAL-04 | FR-VAL-04 | `/` 합 = 34 | ⏳ |
-| D-VAL-05 | FR-VAL-05 | 10선 전체 | ⏳ |
-| D-VAL-03 | FR-VAL-03 | `\` 합 = 34 | ⏳ |
-| D-LOC-01 | FR-LOC-01 | 빈칸 2좌표 | ⏳ |
-| D-SOL-01 | FR-SOL-01 | 빈칸 대입 풀이 | ⏳ |
-| U-IN-01~05 | FR-IN-01~05 | 입력 검증 | ⏳ |
-| U-OUT-01~02 | FR-OUT-01~02 | 출력 | ⏳ |
+**권장 순서:** `D-VAL-04` → `D-VAL-05` → `D-VAL-03` → `D-VAL-01` → `D-VAL-02` → `D-LOC-01` → `D-SOL-01` → `U-IN-01`~`05` → `U-OUT-01`~`02`
+
+### 공통 Harness (RED 선행)
+
+- [ ] `tests/conftest.py` — `grid_g0`, `grid_g1`, `grid_prd`, `grid_bad_slash` (격자만, 로직 없음)
+- [ ] `src/entity/constants.py` — `MAGIC_CONSTANT`, `BLANK_CELL_VALUE`, `GRID_SIZE` (스켈레톤·GREEN 시)
+
+**G1 격자 (RED SSOT)** — 빈칸 1-index `(2,3)`, `(4,4)`:
+
+```
+16   3   2  13
+ 5  10   0   8
+ 9   6   7  12
+ 4  15  14   0
+```
+
+### Track B — Logic (`tests/entity/`)
+
+| Test ID | RED 작업 | pytest (예시) | 상태 |
+|---------|----------|---------------|------|
+| D-VAL-04 | `test_d_val_04.py` — `validate_anti_diagonal()` · `/` 합 34 (Mom Test **우선**) | `pytest tests/entity/test_d_val_04.py -v` | ⏳ |
+| D-VAL-05 | `test_d_val_05.py` — `validate_all_lines()` · G0 · 10선 OK | `pytest tests/entity/test_d_val_05.py -v` | ⏳ |
+| D-VAL-03 | `test_d_val_03.py` — `validate_main_diagonal()` · G0 · `\` = 34 | `pytest tests/entity/test_d_val_03.py -v` | ⏳ |
+| D-VAL-01 | `test_d_val_01.py` — `validate_rows()` · G0 · 행 4×34 | `pytest tests/entity/test_d_val_01.py -v` | ⏳ |
+| D-VAL-02 | `test_d_val_02.py` — `validate_cols()` · G0 · 열 4×34 | `pytest tests/entity/test_d_val_02.py -v` | ⏳ |
+| D-LOC-01 | `test_d_loc_01.py` — `find_blank_coords()` · G1 → `[(2,3),(4,4)]` | `pytest tests/entity/test_d_loc_01.py::test_d_loc_01_blank_coords_row_major -v` | ⏳ |
+| D-SOL-01 | `test_d_sol_01.py` — `solve()` · G1 → `int[6]` 1-index | `pytest tests/entity/test_d_sol_01.py -v` | ⏳ |
+
+**Logic RED 게이트:** 각 ID마다 터미널 **FAILED** (`ModuleNotFoundError` / `pytest.fail("RED: D-xxx …")`) 확인 후 GREEN.
+
+### Track A — UI (`tests/boundary/`)
+
+| Test ID | RED 작업 | Then (기대) | 상태 |
+|---------|----------|-------------|------|
+| U-IN-01 | `test_u_in_01.py` — `grid=None` | `E003` | ⏳ |
+| U-IN-02 | `test_u_in_02.py` — `grid` 3×3 | `E001` | ⏳ |
+| U-IN-03 | `test_u_in_03.py` — 값 1~16 밖 | `E003` | ⏳ |
+| U-IN-04 | `test_u_in_04.py` — 빈칸 ≠ 2 | `E002` | ⏳ |
+| U-IN-05 | `test_u_in_05.py` — 1~16 중복 | `E003` | ⏳ |
+| U-OUT-01 | `test_u_out_01.py` — 유효 G1 | `int[6]` 또는 OK | ⏳ |
+| U-OUT-02 | `test_u_out_02.py` — 줄 깨짐 (Mom Test SC-2) | `E004` + 줄 식별 | ⏳ |
+
+**UI RED 게이트:** control Mock 허용 · `pytest tests/boundary/test_u_*.py -v` → **FAILED** 확인.
+
+### RED 완료 게이트
+
+- [ ] Logic: `pytest tests/entity/ -v` — ID별 RED FAIL 확보
+- [ ] UI: `pytest tests/boundary/ -v` — ID별 RED FAIL 확보
+- [ ] 이후 GREEN → REFACTOR ([docs/RED-TODO.md](docs/RED-TODO.md) GREEN 항목 참고)
+
+## C2C 요약 ([PRD §8](docs/PRD.md#8-c2c-추적-예시))
+
+| Test ID | PRD | Layer | 요약 |
+|---------|-----|-------|------|
+| D-VAL-04 | FR-VAL-04 | entity | `/` 합 = 34 (**RED 우선**) |
+| D-VAL-05 | FR-VAL-05 | entity | 10선 전체 |
+| D-VAL-03 | FR-VAL-03 | entity | `\` 합 = 34 |
+| D-VAL-01 | FR-VAL-01 | entity | 행 4 — 합 34 |
+| D-VAL-02 | FR-VAL-02 | entity | 열 4 — 합 34 |
+| D-LOC-01 | FR-LOC-01 | entity | 빈칸 2좌표 (1-index) |
+| D-SOL-01 | FR-SOL-01 | entity | 빈칸 대입 · `int[6]` |
+| U-IN-01~05 | FR-IN-01~05 | boundary | 입력 검증 |
+| U-OUT-01~02 | FR-OUT-01~02 | boundary | 성공/실패 출력 |
 
 ## 사용자 ([PRD §4](docs/PRD.md#4-사용자))
 
@@ -128,6 +183,7 @@
 | 문서 | 설명 |
 |------|------|
 | [docs/PRD.md](docs/PRD.md) | **SSOT** — FR/SC/C2C/ECB/에러 코드 |
+| [docs/RED-TODO.md](docs/RED-TODO.md) | **RED/GREEN 체크리스트** — Dual-Track 설계표·픽스처·Invariant |
 | [Report/01.MagicSquare_ProblemDefinition_Report.md](Report/01.MagicSquare_ProblemDefinition_Report.md) | Mom Test · 세션 3 워크북 |
 | [Prompt/01.MagicSquare_Session1_MomTest_ProblemDefinition-Transcript.md](Prompt/01.MagicSquare_Session1_MomTest_ProblemDefinition-Transcript.md) | 세션 1 Transcript |
 
@@ -136,30 +192,41 @@
 ```
 MagicSquare_xx/
 ├── README.md
-├── docs/PRD.md
+├── .cursorrules
+├── docs/
+│   ├── PRD.md
+│   └── RED-TODO.md          # RED/GREEN 체크리스트
 ├── Report/01.*.md
 ├── Prompt/01.*-Transcript.md
-│
-│  (예정 — [PRD §13](docs/PRD.md#13-다음-단계))
-├── .cursorrules
 ├── src/{entity,control,boundary}/
-└── tests/{entity,control,boundary}/
+└── tests/
+    ├── conftest.py          # grid_g0, grid_g1, … (RED 예정)
+    ├── entity/              # test_d_*.py
+    ├── control/
+    └── boundary/            # test_u_*.py
 ```
 
-## 개발 환경 (코드 골격 추가 후)
+## 개발 환경
 
 ```bash
 python -m venv .venv
 .venv\Scripts\activate    # Windows
 pip install -e ".[dev]"
-python -m pytest tests/ -v
+
+# RED — 단일 ID (Mom Test 우선)
+python -m pytest tests/entity/test_d_val_04.py -v
+
+# RED — Logic / UI 전체 (진행 후)
+python -m pytest tests/entity/ -v
+python -m pytest tests/boundary/ -v
 ```
 
 ## 다음 단계 ([PRD §13](docs/PRD.md#13-다음-단계))
 
-1. Mom Test Q11 보완(선택) — `/` 검증 시 빈칸에 최종 숫자 여부
-2. `.cursorrules` + `/tdd-red`
-3. `tests/entity/test_d_val_04.py` RED — `/` 합 ≠ 34 FAIL 로그
+1. [docs/RED-TODO.md](docs/RED-TODO.md) — Harness `conftest` + **D-VAL-04** RED 스켈레톤
+2. `pytest` **FAILED** 로그 확보 → GREEN은 ID 1묶음씩
+3. Logic Track 완료 후 Boundary `U-IN-*` → `U-OUT-*` RED
+4. Mom Test Q11 보완(선택)
 
 ## 용어 ([PRD §11](docs/PRD.md#11-용어))
 

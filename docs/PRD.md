@@ -175,4 +175,5 @@
 |------|------|
 | 1 | Mom Test Q11 보완(선택) |
 | 2 | `.cursorrules` + `/tdd-red` |
-| 3 | `tests/entity/test_d_val_04.py` RED — `/` 합 ≠ 34 FAIL 로그 |
+| 3 | [RED-TODO.md](RED-TODO.md) — Dual-Track RED 체크리스트 |
+| 4 | `tests/entity/test_d_val_04.py` RED — `/` 합 ≠ 34 FAIL 로그 |
