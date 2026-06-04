@@ -1,0 +1,40 @@
+# MagicSquare_xx — Project Constitution (초안)
+
+## 도메인 (SSOT)
+- **4×4 부분 마방진**: 셀 값 `0`(빈칸) 또는 `1..16`, 빈칸(`0`) **정확히 2개**, 1~16 **중복 없음**.
+- **10선**: 행4 + 열4 + 주대각선 `\` + 반대 대각선 `/`, 각 합 = **마방진 상수 34**.
+- **MagicConstant SSOT**: `34`, `16`, `4`, `0` 등은 `src/entity/constants.py`(또는 동등 모듈)만 사용. 코드 전역 리터럴 `34`/`16` 산재 **금지**.
+- **성공 출력**: `int[6]` → `[r1, c1, n1, r2, c2, n2]` — 빈칸 2곳에 넣을 값, 좌표 **1-index**.
+
+## 오류 코드 (Boundary 전담)
+- **E001** 격자 크기 ≠ 4×4 · **E002** 빈칸 개수 ≠ 2 · **E003** 범위/중복/null
+- **E004** 특정 줄 합 ≠ 34 (행/열/`\`/`/` + 인덱스) · **E005** 풀이 없음
+- **E006** 풀이 다중 · **E007** Boundary I/O·표현 오류
+- **Entity**: E001~E005 **처리·반환·문자열 매핑 금지** — 순수 판정·좌표·후보만. 오류 코드는 Control/Boundary가 부여.
+
+## ECB · 의존 방향
+- **boundary → control → entity** (역방향 import 금지).
+- **entity → boundary/control import 금지** (`entity`는 표준 라이브러리·동일 패키지 entity만).
+
+## Dual-Track TDD
+| Track | Layer | 테스트 ID | 경로 | Mock |
+|-------|-------|-----------|------|------|
+| Logic | entity, control | `D-*` | `tests/entity/`, `tests/control/` | Domain Mock **금지** |
+| UI | boundary | `U-*` | `tests/boundary/` | entity/control Mock **허용** |
+
+- 파일명: Logic `test_d_*.py`, UI `test_u_*.py`. docstring/함수명에 ID(`D-VAL-04` 등) 명시.
+
+## TDD 루프
+- **RED → GREEN → REFACTOR** 순서 고정.
+- `pytest.fail("RED: …")` 스켈레톤 → RED 본문 → **FAIL 로그 확인** 후 GREEN.
+- **금지**: `skip`/`xfail`, assert 완화, 테스트 삭제로 통과, RED 중 `src/` 선행 구현(스켈레톤·import 제외).
+- Mom Test 우선 RED: **`/`(D-VAL-04)** → 10선 전체(D-VAL-05).
+
+## AI 행동
+- 응답·주석·커밋 메시지: **한국어**.
+- TDD 작업 시 맨 앞에 **Phase(RED|GREEN|REFACTOR) · Layer(entity|control|boundary) · Track(Logic|UI)** 선언.
+- **git commit / push**는 사용자가 요청할 때만. 임의 커밋·force push 금지.
+- 범위 밖: PyQt 완성 앱·3×3/5×5 확장·세션 목표 외 GREEN 일괄 구현.
+
+## 참조
+- 요구사항 SSOT: `docs/PRD.md` · Mom Test: `Report/01` · Harness: `src/`, `tests/`
